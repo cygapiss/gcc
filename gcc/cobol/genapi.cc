@@ -14977,7 +14977,19 @@ parser_symbol_add(struct cbl_field_t *new_var )
                           "%<var_decl_node%>", __func__, new_var->name);
       }
 
-    switch( new_var->type ) // Trap_here for ordinary variables.
+    bool trap_here = !(new_var->attr & global_e) && !(new_var->attr & external_e) ;
+    if( trap_here )
+      {
+      /* This is a purely expedient construction for debugging.  We have a
+         couple of dozen boilerplate variables that get created for every
+         source-code module and program-id.  By skipping over global_e and
+         external_e variables, we get to the first user-defined variable, which
+         is often the one of interest when tracking down parsing in data
+         definitions. So it can be convenient to set a trap here.  */
+      trap_here = false;
+      }
+
+    switch( new_var->type )
       {
       static int counter=1;
       char ach[2*sizeof(cbl_name_t)];
