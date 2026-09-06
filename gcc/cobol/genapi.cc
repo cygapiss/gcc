@@ -10347,12 +10347,26 @@ inspect_replacing(int backward,
   tree params = build_array_of_referlets(pcbl_index, pcbl_refers.data());
 
   // Do the actual call:
-  gg_call(VOID,
-          "__gg__inspect_format_2",
-          backward ? integer_one_node : integer_zero_node,
-          integers,
-          params,
-          NULL_TREE);
+  charmap_t *charmap = __gg__get_charmap(identifier_1.field->codeset.encoding);
+  if( charmap->stride() == 1 && !charmap->is_like_utf8() )
+    {
+    // The variables are ASCII or EBCDIC
+    gg_call(VOID,
+            "__gg__inspect_format_2_sbc",
+            backward ? integer_one_node : integer_zero_node,
+            integers,
+            params,
+            NULL_TREE);
+    }
+  else
+    {
+    gg_call(VOID,
+            "__gg__inspect_format_2",
+            backward ? integer_one_node : integer_zero_node,
+            integers,
+            params,
+            NULL_TREE);
+    }
   }
 
 void
@@ -10395,8 +10409,19 @@ parser_inspect_conv(cbl_refer_t input,
     SHOW_PARSE_END
     }
 
+  const char *format_4;
+  charmap_t *charmap = __gg__get_charmap(input.field->codeset.encoding);
+  if( charmap->stride() == 1 && !charmap->is_like_utf8() )
+    {
+    format_4 = "__gg__inspect_format_4_sbc";
+    }
+  else
+    {
+    format_4 = "__gg__inspect_format_4";
+    }
+
   gg_call(CHAR_P,
-          "__gg__inspect_format_4",
+          format_4,
           backward ? integer_one_node : integer_zero_node,
           input.field ? gg_get_address_of(input.field->var_decl_node)
                       : null_pointer_node,
